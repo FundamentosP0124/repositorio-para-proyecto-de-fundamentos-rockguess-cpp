@@ -1,42 +1,74 @@
 #include <iostream>
-#include <fstream> // Para trabajar con archivos
+#include <fstream>
 #include <string>
-#include <sstream> 
+#include <sstream>
+#include <cstdlib>
+#include <ctime>
+#include <limits>  // Para numeric_limits
 
 using namespace std;
 
-// Función para mostrar el menú y que permitira que el jugador elija una banda
-string banda() {
-    cout << "Elige una banda:" << endl;
+// Estructura para representar a un participante
+struct Participante {
+    string nombreCompleto;
+    string carne;
+    string banda;
+    int puntaje;
+    int intentosSobrantes;
+
+    Participante() : puntaje(0), intentosSobrantes(3) {}
+};
+
+// Canciones por banda
+const string cancionesGuns[] = {"Sweet Child O' Mine", "November Rain", "Welcome to the Jungle"};
+const string cancionesMegadeth[] = {"Symphony of Destruction", "Hangar 18", "Holy Wars... The Punishment Due"};
+const string cancionesPoison[] = {"Every Rose Has Its Thorn", "Talk Dirty to Me", "Nothin' but a Good Time"};
+
+// Función para elegir una canción aleatoria de una banda
+string elegirCancion(const string banda) {
+    int indice = rand() % 3;
+    if (banda == "Guns N' Roses") {
+        return cancionesGuns[indice];
+    } else if (banda == "Megadeth") {
+        return cancionesMegadeth[indice];
+    } else if (banda == "Poison") {
+        return cancionesPoison[indice];
+    }
+    return "";
+}
+
 // Función para que el jugador elija la banda que desee
-string Banda() {
+string elegirBanda() {
     cout << "¡Bienvenido al juego de Bandas!" << endl;
     cout << "Elige tu banda favorita:" << endl;
     cout << "1. Guns N' Roses" << endl;
     cout << "2. Megadeth" << endl;
     cout << "3. Poison" << endl;
-    cout << "4, Salir del menu" << endl;
-    int option;
-    cin >> option;
     cout << "4. Salir del menú" << endl;
-    int opcion;
-    cin >> opcion;
 
-    switch (option) {
-    // Devolver la banda elegida según la opción del jugador
-    switch (opcion) {
-        case 1:
-            return "Guns N' Roses";
-        case 2:
-@@ -25,11 +29,63 @@ string banda() {
-            return "Guns N' Roses";
-    }
+    int opcion;
+    do {
+        cout << "Ingresa el número de la banda: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1:
+                return "Guns N' Roses";
+            case 2:
+                return "Megadeth";
+            case 3:
+                return "Poison";
+            case 4:
+                exit(0);
+            default:
+                cout << "Opción inválida. Por favor, elige una opción válida." << endl;
+        }
+    } while (true);
 }
 
-// Función para imprimir el progreso actual del jugador en la canción
-void imprimirProgreso(const string& nombreCancion, const string& progreso) {
-    cout << "Progreso en la canción \"" << nombreCancion << "\": ";
-    // Mostrar el progreso con espacios entre cada letra o guión bajo
+// Función para mostrar el progreso actual en la canción sin revelar el nombre completo de la canción
+void mostrarProgreso(const string& progreso) {
+    cout << "Progreso actual: ";
     for (size_t i = 0; i < progreso.length(); ++i) {
         if (progreso[i] != '_') {
             cout << progreso[i] << " ";
@@ -47,52 +79,150 @@ void imprimirProgreso(const string& nombreCancion, const string& progreso) {
     cout << endl;
 }
 
-// Función para registrar participantes en un archivo con carné
-void registrarParticipante(const string& archivoRegistro, const string& nombreCompleto, const string& carne, const string& banda) {
-    ofstream archivo;
-    archivo.open(archivoRegistro, ios_base::app); // Abrir el archivo en modo append (agregar al final)
+// Función para mostrar el nombre completo de la canción
+void mostrarNombreCancion(const string& nombreCancion) {
+    cout << "La canción era: " << nombreCancion << endl;
+}
 
-    // Verificar si el archivo se abrió correctamente
+// Función para registrar participantes en un archivo con carné
+void registrarParticipante(const string& archivoRegistro, Participante& participante) {
+    ofstream archivo;
+    archivo.open(archivoRegistro, ios_base::app);
+
     if (archivo.is_open()) {
-        archivo << nombreCompleto << "," << carne << "," << banda << "\n"; // Escribir en el archivo en el formato: nombreCompleto,carné,banda
-        archivo.close(); // Cerrar el archivo después de escribir
-        cout << "¡Registro exitoso de participante!" << endl; // Confirmar que el registro fue exitoso
+        archivo << participante.nombreCompleto << "," << participante.carne << "," << participante.banda << "," << participante.puntaje << "\n";
+        archivo.close();
+        cout << "¡Registro exitoso de participante!" << endl;
     } else {
-        cout << "¡Error al intentar abrir el archivo de registro!" << endl; // Mostrar mensaje de error si no se pudo abrir el archivo
+        cout << "¡Error al intentar abrir el archivo de registro!" << endl;
+    }
+}
+
+// Función para determinar al ganador entre los participantes
+void determinarGanador(Participante participantes[], int numParticipantes) {
+    int indiceGanador = 0;
+    for (int i = 1; i < numParticipantes; ++i) {
+        if (participantes[i].intentosSobrantes > participantes[indiceGanador].intentosSobrantes) {
+            indiceGanador = i;
+        }
+    }
+
+    cout << "\nEl ganador es: " << participantes[indiceGanador].nombreCompleto << " con " << participantes[indiceGanador].intentosSobrantes << " intentos sobrantes." << endl;
+
+    ofstream archivo;
+    archivo.open("registro_ganador.txt");
+    if (archivo.is_open()) {
+        archivo << "El ganador es: " << participantes[indiceGanador].nombreCompleto << " de la banda " << participantes[indiceGanador].banda << " con " << participantes[indiceGanador].intentosSobrantes << " intentos sobrantes." << endl;
+        archivo.close();
+    } else {
+        cout << "Error al intentar abrir el archivo para registrar al ganador." << endl;
+    }
+}
+
+// Función para jugar a adivinar la canción
+void jugarAdivinarCancion(Participante& participante, const string& cancion) {
+    string progreso(cancion.length(), '_');
+    int intentos = 3;
+
+    cout << "\n¡Adivina la canción de " << participante.banda << "!" << endl;
+
+    while (intentos > 0) {
+        cout << "Intentos restantes: " << intentos << endl;
+        mostrarProgreso(progreso);
+
+        cout << "Ingresa una letra o la canción completa: ";
+        char letra;
+        cin >> letra;
+
+        letra = tolower(letra);
+
+        bool acierto = false;
+        for (size_t i = 0; i < cancion.length(); ++i) {
+            if (tolower(cancion[i]) == letra) {
+                progreso[i] = cancion[i];
+                acierto = true;
+            }
+        }
+
+        if (acierto) {
+            cout << "¡Correcto! Has encontrado la letra \"" << letra << "\" en la canción." << endl;
+        } else {
+            cout << "Incorrecto. Intenta de nuevo." << endl;
+            intentos--;
+        }
+
+        if (progreso == cancion) {
+            cout << "¡Felicidades! Has adivinado la canción correctamente." << endl;
+            participante.puntaje += intentos;
+            participante.intentosSobrantes = intentos;
+            break;
+        }
+    }
+
+    if (intentos == 0) {
+        cout << "Lo siento, has agotado tus intentos. La canción era: " << cancion << endl;
+    }
+}
+
+// Función para jugar a adivinar la canción recursivamente entre los participantes
+void jugarCancion(string cancion, Participante participantes[], int& turno, int numParticipantes) {
+    string respuesta;
+    cout << "Participante " << turno << ", adivina la canción: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, respuesta);
+
+    if (respuesta == cancion) {
+        cout << "¡FELICIDADES, " << participantes[turno - 1].nombreCompleto << ", LOGRASTE ADIVINAR LA CANCIÓN!" << endl;
+    } else {
+        turno = (turno % numParticipantes) + 1; // Cambia de turno
+        jugarCancion(cancion, participantes, turno, numParticipantes); // Llama a la función recursivamente
     }
 }
 
 int main() {
-    string band = banda();
-    int main() {
-    string nombreCancion = "Sweet Child O' Mine";
-    string progreso(nombreCancion.length(), '_');
+    srand(static_cast<unsigned int>(time(0)));
 
-    // Aquí continuaremos con el código.
-    // Mostrar el progreso inicial en la canción
-    imprimirProgreso(nombreCancion, progreso);
+    string nombreCancion;
+    string bandaElegida = elegirBanda();
 
-    string bandaElegida = Banda();
-    cout << "Has seleccionado la banda: " << bandaElegida << endl;
-
-    // Registro de tres participantes
-    for (int i = 0; i < 3; ++i) {
-        string nombreCompleto;
-        string carne;
-
-        // Solicitar nombre completo y carné del participante
-        cout << "Ingresa el nombre completo del participante " << i + 1 << ": ";
-        cin.ignore(); // Limpiar el buffer de entrada antes de getline
-        getline(cin, nombreCompleto);
-
-        cout << "Ingresa el número de carné del participante " << i + 1 << ": ";
-        cin >> carne;
-
-        // Llamar a la función para registrar participante en el archivo
-        registrarParticipante("registro_participantes.txt", nombreCompleto, carne, bandaElegida);
-
+    if (bandaElegida == "Guns N' Roses") {
+        nombreCancion = elegirCancion("Guns N' Roses");
+    } else if (bandaElegida == "Megadeth") {
+        nombreCancion = elegirCancion("Megadeth");
+    } else if (bandaElegida == "Poison") {
+        nombreCancion = elegirCancion("Poison");
     }
 
+    cout << "Has seleccionado la banda: " << bandaElegida << endl;
+
+    Participante participantes[3];
+
+    // Registro de participantes
+    for (int i = 0; i < 3; ++i) {
+        cout << "\nRegistro del participante " << i + 1 << endl;
+        cout << "----------------------------------" << endl;
+
+        cout << "Ingresa tu nombre completo: ";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getline(cin, participantes[i].nombreCompleto);
+
+        cout << "Ingresa tu número de carné: ";
+        cin >> participantes[i].carne;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        participantes[i].banda = bandaElegida;
+
+        registrarParticipante("registro_participantes.txt", participantes[i]);
+    }
+
+    // Juego de adivinar la canción
+    int turno = 1;
+    jugarCancion(nombreCancion, participantes, turno, 3);
+
+    determinarGanador(participantes, 3);
+
+    // Mostrar el nombre de la canción al final
+    mostrarNombreCancion(nombreCancion);
+
     return 0;
-}
 }
