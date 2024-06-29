@@ -23,6 +23,7 @@ struct Participante {
 const string cancionesGuns[] = {"Sweet Child O' Mine", "November Rain", "Welcome to the Jungle"};
 const string cancionesMegadeth[] = {"Symphony of Destruction", "Hangar 18", "Holy Wars... The Punishment Due"};
 const string cancionesPoison[] = {"Every Rose Has Its Thorn", "Talk Dirty to Me", "Nothin' but a Good Time"};
+const string cancionesVanHalen[] = {"Jump", "Panama", "Hot for Teacher"};
 
 // Función para elegir una canción aleatoria de una banda
 string elegirCancion(const string banda) {
@@ -33,6 +34,8 @@ string elegirCancion(const string banda) {
         return cancionesMegadeth[indice];
     } else if (banda == "Poison") {
         return cancionesPoison[indice];
+    } else if (banda == "Van Halen") {
+        return cancionesVanHalen[indice];
     }
     return "";
 }
@@ -44,7 +47,8 @@ string elegirBanda() {
     cout << "1. Guns N' Roses" << endl;
     cout << "2. Megadeth" << endl;
     cout << "3. Poison" << endl;
-    cout << "4. Salir del menú" << endl;
+    cout << "4. Van Halen" << endl; // Nueva opción
+    cout << "5. Salir del menú" << endl;
 
     int opcion;
     do {
@@ -59,6 +63,8 @@ string elegirBanda() {
             case 3:
                 return "Poison";
             case 4:
+                return "Van Halen";
+            case 5:
                 exit(0);
             default:
                 cout << "Opción inválida. Por favor, elige una opción válida." << endl;
@@ -191,6 +197,8 @@ int main() {
         nombreCancion = elegirCancion("Megadeth");
     } else if (bandaElegida == "Poison") {
         nombreCancion = elegirCancion("Poison");
+    } else if (bandaElegida == "Van Halen") {
+        nombreCancion = elegirCancion("Van Halen");
     }
 
     cout << "Has seleccionado la banda: " << bandaElegida << endl;
