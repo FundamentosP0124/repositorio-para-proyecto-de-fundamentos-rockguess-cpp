@@ -29,7 +29,7 @@ void printprogress(const string& songName, const string& progress) {
 }
 
 int main() {
-    // Arreglos de canciones para cada banda
+    // Arreglos para las canciones de cada banda
     string gunsNRoses[] = {
         "Sweet Child O' Mine",
         "November Rain",
@@ -82,7 +82,7 @@ int main() {
         "Dreams"
     };
 
-    int option = Banda(); // El usuario podra elegir una banda
+    int option = Banda(); // El usuario podra elegir tan solo una banda
 
     switch (option) {
         case 1:
