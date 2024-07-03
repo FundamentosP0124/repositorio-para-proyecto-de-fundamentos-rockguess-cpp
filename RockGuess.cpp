@@ -41,10 +41,7 @@ int main() {
     string band = chooseBand();
     cout << "Has elegido la banda: " << band << endl;
 
-    // Aquí puedes continuar con el código según lo necesites.
-    // Por ejemplo, podrías llamar a chooseRandomSong(band) y luego usar printProgress().
-   //aqui continuaremos con las funciones secundarias
-   //por ejemplo una que llame a la funcion welcomememsaje que haremos dentro de poco 
+ 
 
     return 0;
 }
