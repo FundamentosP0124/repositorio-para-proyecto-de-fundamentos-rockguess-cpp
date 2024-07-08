@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream>
 #include <cstdlib>
 #include <ctime>
 #include <limits>
@@ -13,21 +12,40 @@ struct Participante {
     string nombreCompleto;
     string carne;
     string banda;
-    int puntaje;
-    int intentosSobrantes;
+    int puntajeTotal;   // Puntaje acumulado a lo largo de todas las rondas
+    int intentosTotales; // Intentos totales utilizados a lo largo de todas las rondas
 
-    Participante() : puntaje(0), intentosSobrantes(3) {}
+    Participante() : puntajeTotal(0), intentosTotales(0) {}  // Constructor inicializa el puntaje y los intentos
 };
 
-// Canciones por banda
-const string cancionesGuns[] = {"Sweet Child O' Mine", "November Rain", "Welcome to the Jungle"};
-const string cancionesMegadeth[] = {"Symphony of Destruction", "Hangar 18", "Holy Wars... The Punishment Due"};
-const string cancionesPoison[] = {"Every Rose Has Its Thorn", "Talk Dirty to Me", "Nothin' but a Good Time"};
-const string cancionesVanHalen[] = {"Jump", "Panama", "Hot for Teacher"};
+// Listas de canciones por banda
+const string cancionesGuns[] = {
+    "Sweet Child O' Mine", "November Rain", "Welcome to the Jungle",
+    "Paradise City", "Knockin' on Heaven's Door", "Don't Cry",
+    "Patience", "Civil War", "You Could Be Mine", "Estranged"
+};
+
+const string cancionesMegadeth[] = {
+    "Symphony of Destruction", "Hangar 18", "Holy Wars... The Punishment Due",
+    "Peace Sells", "Tornado of Souls", "A Tout Le Monde",
+    "Sweating Bullets", "Trust", "In My Darkest Hour", "Mechanix"
+};
+
+const string cancionesPoison[] = {
+    "Every Rose Has Its Thorn", "Talk Dirty to Me", "Nothin' But a Good Time",
+    "Fallen Angel", "Unskinny Bop", "Ride the Wind",
+    "Something to Believe In", "I Won't Forget You", "Your Mama Don't Dance", "Life Goes On"
+};
+
+const string cancionesVanHalen[] = {
+    "Jump", "Panama", "Hot for Teacher",
+    "Runnin' with the Devil", "Ain't Talkin' 'bout Love", "Why Can't This Be Love",
+    "Right Now", "Dance the Night Away", "Eruption", "Dreams"
+};
 
 // Función para elegir una canción aleatoria de una banda
 string elegirCancion(const string& banda) {
-    int indice = rand() % 3;
+    int indice = rand() % 10;
     if (banda == "Guns N' Roses") {
         return cancionesGuns[indice];
     } else if (banda == "Megadeth") {
@@ -40,43 +58,14 @@ string elegirCancion(const string& banda) {
     return "";
 }
 
-// Función para que el jugador elija la banda que desee
-string elegirBanda() {
-    cout << "¡Bienvenido al juego de Bandas!" << endl;
-    cout << "Elige tu banda favorita:" << endl;
-    cout << "1. Guns N' Roses" << endl;
-    cout << "2. Megadeth" << endl;
-    cout << "3. Poison" << endl;
-    cout << "4. Van Halen" << endl;
-
-    int opcion;
-    do {
-        cout << "Ingresa el número de la banda: ";
-        cin >> opcion;
-
-        switch (opcion) {
-            case 1:
-                return "Guns N' Roses";
-            case 2:
-                return "Megadeth";
-            case 3:
-                return "Poison";
-            case 4:
-                return "Van Halen";
-            default:
-                cout << "Opción inválida. Por favor, elige una opción válida." << endl;
-        }
-    } while (true);
-}
-
-// Función para mostrar el progreso actual en la canción sin revelar el nombre completo de la canción
+// Función para imprimir el progreso actual del jugador
 void mostrarProgreso(const string& progreso) {
-    cout << "Progreso actual: ";
+    cout << "Progreso: ";
     for (size_t i = 0; i < progreso.length(); ++i) {
         if (progreso[i] != '_') {
-            cout << progreso[i] << " ";
+            cout << progreso[i] << " "; // Muestra la letra descubierta
         } else {
-            cout << "_ ";
+            cout << "_ "; // Muestra un guión bajo para las letras no descubiertas
         }
     }
     cout << endl;
@@ -85,14 +74,14 @@ void mostrarProgreso(const string& progreso) {
 // Función para registrar participantes en un archivo con carné
 void registrarParticipante(const string& archivoRegistro, Participante& participante) {
     ofstream archivo;
-    archivo.open(archivoRegistro, ios_base::app);
+    archivo.open(archivoRegistro, ios_base::app); // Abre el archivo en modo de añadir al final
 
     if (archivo.is_open()) {
-        archivo << participante.nombreCompleto << "," << participante.carne << "," << participante.banda << "," << participante.puntaje << "\n";
+        archivo << participante.nombreCompleto << "," << participante.carne << "," << participante.banda << "," << participante.puntajeTotal << "," << participante.intentosTotales << "\n";
         archivo.close();
-        cout << "¡Registro exitoso de participante!" << endl;
+        cout << "¡Registro exitoso de participante!" << endl; // Mensaje de confirmación
     } else {
-        cout << "¡Error al intentar abrir el archivo de registro!" << endl;
+        cout << "¡Error al intentar abrir el archivo de registro!" << endl; // Mensaje de error
     }
 }
 
@@ -100,27 +89,27 @@ void registrarParticipante(const string& archivoRegistro, Participante& particip
 void determinarGanador(Participante participantes[], int numParticipantes) {
     int indiceGanador = 0;
     for (int i = 1; i < numParticipantes; ++i) {
-        if (participantes[i].intentosSobrantes > participantes[indiceGanador].intentosSobrantes) {
+        if (participantes[i].puntajeTotal > participantes[indiceGanador].puntajeTotal) {
             indiceGanador = i;
         }
     }
 
-    cout << "\nEl ganador es: " << participantes[indiceGanador].nombreCompleto << " con " << participantes[indiceGanador].intentosSobrantes << " intentos sobrantes." << endl;
+    cout << "\nEl ganador es: " << participantes[indiceGanador].nombreCompleto << " con un puntaje total de " << participantes[indiceGanador].puntajeTotal << " puntos." << endl; // Muestra el ganador y su puntaje total
 
     ofstream archivo;
     archivo.open("registro_ganador.txt");
     if (archivo.is_open()) {
-        archivo << "El ganador es: " << participantes[indiceGanador].nombreCompleto << " de la banda " << participantes[indiceGanador].banda << " con " << participantes[indiceGanador].intentosSobrantes << " intentos sobrantes." << endl;
+        archivo << "El ganador es: " << participantes[indiceGanador].nombreCompleto << " de la banda " << participantes[indiceGanador].banda << " con un puntaje total de " << participantes[indiceGanador].puntajeTotal << " puntos." << endl;
         archivo.close();
     } else {
-        cout << "Error al intentar abrir el archivo para registrar al ganador." << endl;
+        cout << "Error al intentar abrir el archivo para registrar al ganador." << endl; // Mensaje de error si no se pudo abrir el archivo
     }
 }
 
 // Función para jugar a adivinar la canción
 void jugarAdivinarCancion(Participante& participante, const string& cancion) {
-    string progreso(cancion.length(), '_');
-    int intentos = 3;
+    string progreso(cancion.length(), '_'); // Inicializa el progreso como guiones bajos
+    int intentos = 3; // Número de intentos permitidos
 
     cout << "\n¡Adivina la canción de " << participante.banda << "!" << endl;
 
@@ -135,55 +124,104 @@ void jugarAdivinarCancion(Participante& participante, const string& cancion) {
 
         if (respuesta == cancion) {
             cout << "¡Felicidades! Has adivinado la canción correctamente." << endl;
-            participante.puntaje += intentos;
-            participante.intentosSobrantes = intentos;
+            participante.puntajeTotal += intentos; // Suma puntos equivalentes a los intentos restantes
             break;
+        } else if (respuesta.length() == 1 && cancion.find(respuesta) != string::npos) {
+            cout << "¡Correcto! La letra '" << respuesta << "' está en la canción." << endl;
+            for (size_t i = 0; i < cancion.length(); ++i) {
+                if (cancion[i] == respuesta[0]) {
+                    progreso[i] = respuesta[0]; // Actualiza el progreso mostrando las letras correctas
+                }
+            }
         } else {
             cout << "Incorrecto. Intenta de nuevo." << endl;
-            intentos--;
+            intentos--; // Reducción del número de intentos si la respuesta es incorrecta
         }
     }
 
+    participante.intentosTotales += (3 - intentos); // Actualiza los intentos totales utilizados
+
     if (intentos == 0) {
-        cout << "Lo siento, has agotado tus intentos. La canción era: " << cancion << endl;
+        cout << "Lo siento, has agotado tus intentos. La canción era: " << cancion << endl; // Mensaje si se agotan los intentos
+    }
+}
+
+// Función para manejar el menú de selección de banda
+string seleccionarBanda() {
+    cout << "Elige una banda:" << endl;
+    cout << "1. Guns N' Roses" << endl;
+    cout << "2. Megadeth" << endl;
+    cout << "3. Poison" << endl;
+    cout << "4. Van Halen" << endl;
+    cout << "5. Salir del menu" << endl;
+
+    int opcion;
+    cin >> opcion;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (opcion) {
+        case 1:
+            return "Guns N' Roses";
+        case 2:
+            return "Megadeth";
+        case 3:
+            return "Poison";
+        case 4:
+            return "Van Halen";
+        case 5:
+            return "Salir";
+        default:
+            cout << "Opción no válida. Seleccionando Guns N' Roses por defecto." << endl;
+            return "Guns N' Roses";
     }
 }
 
 int main() {
-    srand(static_cast<unsigned int>(time(0)));
+    srand(static_cast<unsigned int>(time(nullptr))); // Inicializa la semilla para números aleatorios
 
-    string bandaElegida = elegirBanda();
-    string nombreCancion = elegirCancion(bandaElegida);
+    cout << "¡Bienvenido al juego de adivinar la canción!" << endl;
 
-    cout << "Has seleccionado la banda: " << bandaElegida << endl;
+    // Número de participantes
+    int numParticipantes;
+    cout << "Ingrese el número de participantes: ";
+    cin >> numParticipantes;
 
-    Participante participantes[3];
+    // Arreglo de participantes
+    Participante participantes[numParticipantes];
 
     // Registro de participantes
-    for (int i = 0; i < 3; ++i) {
-        cout << "\nRegistro del participante " << i + 1 << endl;
-        cout << "----------------------------------" << endl;
-
-        cout << "Ingresa tu nombre completo: ";
+    for (int i = 0; i < numParticipantes; ++i) {
+        cout << "\nParticipante " << i + 1 << endl;
+        cout << "Nombre completo: ";
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         getline(cin, participantes[i].nombreCompleto);
+        cout << "Carné: ";
+        getline(cin, participantes[i].carne);
 
-        cout << "Ingresa tu número de carné: ";
-        cin >> participantes[i].carne;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        participantes[i].banda = seleccionarBanda(); // Elige una banda para el participante
 
-        participantes[i].banda = bandaElegida;
-
-        registrarParticipante("registro_participantes.txt", participantes[i]);
+        registrarParticipante("registro_participantes.txt", participantes[i]); // Registra al participante
     }
 
-    // Juego de adivinar la canción
-    for (int i = 0; i < 3; ++i) {
-        jugarAdivinarCancion(participantes[i], nombreCancion);
+    
+    for (int ronda = 0; ronda < 3; ++ronda) {
+        string cancion = elegirCancion(participantes[0].banda); 
+
+        cout << "\n--- Ronda " << ronda + 1 << " ---" << endl;
+        for (int i = 0; i < numParticipantes; ++i) {
+            jugarAdivinarCancion(participantes[i], cancion); 
+        }
     }
 
     // Determinar y mostrar al ganador
-    determinarGanador(participantes, 3);
+    cout << "\n--- ¡Juego Terminado! ---" << endl;
+    determinarGanador(participantes, numParticipantes); // Determina al ganador
+
+    // Mostrar puntajes individuales
+    cout << "\n--- Puntajes individuales ---" << endl;
+    for (int i = 0; i < numParticipantes; ++i) {
+        cout << participantes[i].nombreCompleto << " de la banda " << participantes[i].banda << " tiene un puntaje total de " << participantes[i].puntajeTotal << " puntos." << endl; // Muestra el puntaje individual de cada participante
+    }
 
     return 0;
 }
